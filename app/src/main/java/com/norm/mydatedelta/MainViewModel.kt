@@ -5,13 +5,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
 
 data class DateState(
-    var firstDate: Long = 0L,
-    var secondDate: Long = 0L,
-    var isIncludeDeadline: Boolean = false,
-    var deltaDateString: String = "",
+    val firstDate: Long = 0L,
+    val secondDate: Long = 0L,
+    val isIncludeDeadline: Boolean = false,
+    val deltaDateString: String = "",
 )
 
 sealed class Actions {
@@ -29,30 +30,29 @@ class MainViewModel : ViewModel() {
         when (actions) {
             is Actions.SetSecondDate -> setFirstDate(actions.date)
             is Actions.SetFirstDate -> setSecondDate(actions.date)
-            is Actions.OnIncludeDeadline -> onIncludeDeadline(actions.checked)
+            is Actions.OnIncludeDeadline -> onIncludeDeadline()
             is Actions.GetDeltaDateString -> calculateDeltaDateString()
         }
     }
 
     private fun setFirstDate(date: Long) {
-        state.firstDate = date
+        state = state.copy(firstDate = date)
     }
 
     private fun setSecondDate(date: Long) {
-        state.secondDate = date
+        state = state.copy(secondDate = date)
     }
 
-    private fun onIncludeDeadline(checked: Boolean) {
-        state.isIncludeDeadline = checked
+    private fun onIncludeDeadline() {
+        state = state.copy(isIncludeDeadline = !state.isIncludeDeadline)
         Log.d("MyLog", state.isIncludeDeadline.toString())
     }
 
     private fun calculateDeltaDateString() {
-        if (state.isIncludeDeadline)
-            state.deltaDateString = ((state.firstDate - state.secondDate).milliseconds).toString()
+        state = if (state.isIncludeDeadline)
+            state.copy(deltaDateString = ((state.firstDate - state.secondDate).milliseconds + 1.days).toString())
         else {
-            state.deltaDateString =
-                ((state.firstDate - state.secondDate).milliseconds).toString() + " + 1"
+            state.copy(deltaDateString = ((state.firstDate - state.secondDate).milliseconds).toString())
         }
     }
 }
